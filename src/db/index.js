@@ -1,4 +1,9 @@
-const { Pool } = require("pg");
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
+import "dotenv/config";
+import * as schema from "./schema.ts";
+
+const { Pool } = pg;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -9,7 +14,4 @@ pool.on("error", (err) => {
   process.exit(-1);
 });
 
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-  pool,
-};
+export const db = drizzle(pool, { schema });

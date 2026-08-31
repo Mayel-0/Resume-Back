@@ -1,9 +1,8 @@
-require("dotenv").config();
+import app from "./src/app.js"; // Ajuste le chemin si ton index.js est dans /src
+import "dotenv/config";
 
-const app = require("./src/app");
+const PORT = process.env.PORT || 3000;
 
-const port = Number(process.env.PORT || 5000);
-
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
 });

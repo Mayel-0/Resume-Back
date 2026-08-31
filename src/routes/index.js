@@ -1,9 +1,9 @@
-const express = require("express");
+import { Router } from "express";
 
-const router = express.Router();
+const router = Router();
 
 router.get("/ping", (req, res) => {
   res.json({ success: true, message: "pong" });
 });
 
-module.exports = router;
+export default router;

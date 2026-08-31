@@ -1,22 +1,8 @@
-function notFoundHandler(req, res, next) {
-  const error = new Error(`Route not found: ${req.originalUrl}`);
-  error.status = 404;
-  next(error);
-}
+export const notFoundHandler = (req, res, next) => {
+  res.status(404).json({ error: "Route non trouvée" });
+};
 
-function errorHandler(err, req, res, next) {
-  const status = err.status || 500;
-  const message = err.message || "Internal Server Error";
-
-  console.error(message);
-
-  res.status(status).json({
-    success: false,
-    error: message,
-  });
-}
-
-module.exports = {
-  notFoundHandler,
-  errorHandler,
+export const errorHandler = (err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Erreur serveur interne" });
 };

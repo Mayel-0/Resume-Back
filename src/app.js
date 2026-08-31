@@ -1,8 +1,18 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
+import apiRoutes from "./routes/index.js";
 
-const apiRoutes = require("./routes");
-const { notFoundHandler, errorHandler } = require("./middleware");
+import projectRoutes from "./routes/projects.route.js";
+import socialRoutes from "./routes/socials.route.js";
+import profilRoutes from "./routes/profil.route.js";
+import sectionsRoutes from "./routes/sections.route.js";
+import timelineRoutes from "./routes/timeline.route.js";
+import skillCategoriesRoutes from "./routes/skillCategories.route.js";
+import skillItemsRoutes from "./routes/skillItems.route.js";
+import projectTagsRoutes from "./routes/projectTags.route.js";
+import projectTechStackRoutes from "./routes/projectTechStack.route.js";
+
+import { notFoundHandler, errorHandler } from "./middleware/index.js";
 
 const app = express();
 
@@ -14,8 +24,17 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api", apiRoutes);
+app.use("/api", projectRoutes);
+app.use("/api", socialRoutes);
+app.use("/api", profilRoutes);
+app.use("/api", sectionsRoutes);
+app.use("/api", timelineRoutes);
+app.use("/api", skillCategoriesRoutes);
+app.use("/api", skillItemsRoutes);
+app.use("/api", projectTagsRoutes);
+app.use("/api", projectTechStackRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-module.exports = app;
+export default app;
