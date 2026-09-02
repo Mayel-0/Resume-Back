@@ -13,6 +13,7 @@ import projectTagsRoutes from "./routes/projectTags.route.js";
 import projectTechStackRoutes from "./routes/projectTechStack.route.js";
 
 import { notFoundHandler, errorHandler } from "./middleware/index.js";
+import path from "path";
 
 const app = express();
 
@@ -22,6 +23,9 @@ app.use(express.json());
 app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Resume Back API is running" });
 });
+
+app.use("/images", express.static(path.join(process.cwd(), "public/images")));
+app.use("/svg", express.static(path.join(process.cwd(), "public/svg")));
 
 app.use("/api", apiRoutes);
 app.use("/api", projectRoutes);

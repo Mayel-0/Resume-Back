@@ -21,6 +21,7 @@ export const profile = pgTable("profile", {
   role: varchar("role", { length: 200 }).notNull(),
   location: varchar("location", { length: 100 }),
   tagline: text("tagline"),
+  portraitUrl: varchar("portrait_url", { length: 500 }),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
@@ -68,6 +69,8 @@ export const socials = pgTable("socials", {
   href: varchar("href", { length: 500 }).notNull(),
   icon: varchar("icon", { length: 50 }),
   order: integer("order").notNull(),
+  path: text("path"),
+  viewbox: text("viewbox"),
 });
 
 // ─── Projects ─────────────────────────────────────────────────
