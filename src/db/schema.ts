@@ -111,3 +111,10 @@ export const projectTechStack = pgTable("project_tech_stack", {
   label: varchar("label", { length: 100 }).notNull(),
   type: varchar("type", { length: 20 }).notNull(), // "language" | "framework"
 });
+
+export const admins = pgTable("admins", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
