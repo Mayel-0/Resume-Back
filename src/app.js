@@ -26,7 +26,12 @@ const app = express();
 // ── Middlewares globaux ──────────────────────────────────────
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://mael-llado.com",
+      "https://admin.mael-llado.com",
+    ],
   }),
 );
 app.use(express.json());
