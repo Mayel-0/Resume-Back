@@ -3,7 +3,10 @@ import { timeline } from "../db/schema.ts";
 
 export const getAllTimeline = async (req, res) => {
   try {
-    const allTimeline = await db.select().from(timeline);
+    const allTimeline = await db
+      .select()
+      .from(timeline)
+      .orderBy(timeline.order);
     res.status(200).json(allTimeline);
   } catch (error) {
     res.status(500).json({
