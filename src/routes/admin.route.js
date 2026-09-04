@@ -1,12 +1,153 @@
 import { Router } from "express";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import { db } from "../db/index.js";
-import { profile, sections, timeline, projects } from "../db/schema.ts";
+import {
+  profile,
+  sections,
+  timeline,
+  projects,
+  socials,
+  skillItems,
+  skillCategories,
+} from "../db/schema.ts";
 import { eq } from "drizzle-orm";
 
 const router = Router();
 
 router.use(verifyToken);
+
+//skill-categories
+
+router.get("/skill-categories", async (req, res) => {
+  const rows = await db
+    .select()
+    .from(skillCategories)
+    .orderBy(skillCategories.order);
+  res.json(rows);
+});
+
+router.patch("/skill-categories/:id", async (req, res) => {
+  try {
+    const updated = await db
+      .update(skillCategories)
+      .set(req.body)
+      .where(eq(skillCategories.id, Number(req.params.id)))
+      .returning();
+    res.json(updated[0]);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la mise à jour de la section" });
+  }
+});
+
+router.post("/skill-categories", async (req, res) => {
+  try {
+    const inserted = await db
+      .insert(skillCategories)
+      .values(req.body)
+      .returning();
+    res.status(201).json(inserted[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la création de la section" });
+  }
+});
+
+router.delete("/skill-categories/:id", async (req, res) => {
+  try {
+    await db
+      .delete(skillCategories)
+      .where(eq(skillCategories.id, Number(req.params.id)));
+    res.status(204).end();
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la suppression de la section" });
+  }
+});
+
+// skill-items
+
+router.get("/skill-items", async (req, res) => {
+  const rows = await db.select().from(skillItems);
+  res.json(rows);
+});
+
+router.patch("/skill-items/:id", async (req, res) => {
+  try {
+    const updated = await db
+      .update(skillItems)
+      .set(req.body)
+      .where(eq(skillItems.id, Number(req.params.id)))
+      .returning();
+    res.json(updated[0]);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la mise à jour de la section" });
+  }
+});
+
+router.post("/skill-items", async (req, res) => {
+  try {
+    const inserted = await db.insert(skillItems).values(req.body).returning();
+    res.status(201).json(inserted[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la création de la section" });
+  }
+});
+
+router.delete("/skill-items/:id", async (req, res) => {
+  try {
+    await db.delete(skillItems).where(eq(skillItems.id, Number(req.params.id)));
+    res.status(204).end();
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la suppression de la section" });
+  }
+});
+
+// -- Socials
+router.get("/socials", async (req, res) => {
+  const rows = await db.select().from(socials).orderBy(socials.order);
+  res.json(rows);
+});
+
+router.patch("/socials/:id", async (req, res) => {
+  try {
+    const updated = await db
+      .update(socials)
+      .set(req.body)
+      .where(eq(socials.id, Number(req.params.id)))
+      .returning();
+    res.json(updated[0]);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la mise à jour de la section" });
+  }
+});
+
+router.post("/socials", async (req, res) => {
+  try {
+    const inserted = await db.insert(socials).values(req.body).returning();
+    res.status(201).json(inserted[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la création de la section" });
+  }
+});
+
+router.delete("/socials/:id", async (req, res) => {
+  try {
+    await db.delete(socials).where(eq(socials.id, Number(req.params.id)));
+    res.status(204).end();
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la suppression de la section" });
+  }
+});
 
 // ── Profile ───────────────────────────────────────────────
 router.get("/profil", async (req, res) => {
