@@ -3,7 +3,10 @@ import { sections } from "../db/schema.js";
 
 export const getAllSections = async (req, res) => {
   try {
-    const allSections = await db.select().from(sections);
+    const allSections = await db
+      .select()
+      .from(sections)
+      .orderBy(sections.order);
     res.status(200).json(allSections);
   } catch (error) {
     res
