@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { skillItems } from "../db/schema.ts";
+import { skillItems } from "../db/schema.js";
 
 export const getAllSkillItems = async (req, res) => {
   try {

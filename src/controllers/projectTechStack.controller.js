@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { projectTechStack } from "../db/schema.ts";
+import { projectTechStack } from "../db/schema.js";
 
 export const getAllProjectTechStack = async (req, res) => {
   try {

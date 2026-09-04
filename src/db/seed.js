@@ -9,7 +9,7 @@ import {
   projects,
   projectTags,
   projectTechStack,
-} from "./schema.ts";
+} from "./schema.js";
 
 async function seed() {
   console.log("🌱 Seeding...");

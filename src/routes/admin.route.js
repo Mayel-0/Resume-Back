@@ -9,7 +9,7 @@ import {
   socials,
   skillItems,
   skillCategories,
-} from "../db/schema.ts";
+} from "../db/schema.js";
 import { eq } from "drizzle-orm";
 
 const router = Router();

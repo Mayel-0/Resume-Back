@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { timeline } from "../db/schema.ts";
+import { timeline } from "../db/schema.js";
 
 export const getAllTimeline = async (req, res) => {
   try {

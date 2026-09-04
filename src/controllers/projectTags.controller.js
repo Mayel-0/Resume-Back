@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { projectTags } from "../db/schema.ts";
+import { projectTags } from "../db/schema.js";
 
 export const getAllProjectTags = async (req, res) => {
   try {

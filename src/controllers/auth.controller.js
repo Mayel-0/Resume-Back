@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "../db/index.js";
-import { admins } from "../db/schema.ts";
+import { admins } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 
 export const login = async (req, res) => {

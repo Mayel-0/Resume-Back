@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { projects } from "../db/schema.ts";
+import { projects } from "../db/schema.js";
 
 export const getAllProjects = async (req, res) => {
   try {
@@ -11,5 +11,3 @@ export const getAllProjects = async (req, res) => {
       .json({ error: "Erreur lors de la récupération des projets" });
   }
 };
-
-

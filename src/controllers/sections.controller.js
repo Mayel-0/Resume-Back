@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { sections } from "../db/schema.ts";
+import { sections } from "../db/schema.js";
 
 export const getAllSections = async (req, res) => {
   try {

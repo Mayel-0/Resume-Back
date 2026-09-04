@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { profile } from "../db/schema.ts";
+import { profile } from "../db/schema.js";
 
 export const getProfil = async (req, res) => {
   try {

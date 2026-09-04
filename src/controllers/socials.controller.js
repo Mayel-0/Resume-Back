@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { socials } from "../db/schema.ts";
+import { socials } from "../db/schema.js";
 
 export const getAllSocials = async (req, res) => {
   try {
