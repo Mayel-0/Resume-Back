@@ -41,10 +41,14 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Resume Back API is running" });
 });
 app.use("/images", express.static(path.join(process.cwd(), "public/images")));
+
 app.use(
   "/documents",
   express.static(path.join(process.cwd(), "public/documents"), {
     setHeaders: (res, filePath) => {
+      if (filePath.endsWith(".pdf")) {
+        res.setHeader("Content-Type", "application/pdf");
+      }
       res.setHeader("Content-Disposition", "attachment");
     },
   }),
