@@ -9,6 +9,8 @@ import {
   socials,
   skillItems,
   skillCategories,
+  projectTags,
+  projectTechStack,
 } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 
@@ -298,6 +300,103 @@ router.delete("/projects/:id", async (req, res) => {
     res.status(204).end();
   } catch (error) {
     res.status(500).json({ error: "Erreur lors de la suppression du projet" });
+  }
+});
+
+// ── Project tags ─────────────────────────────────────────
+router.get("/project-tags", async (req, res) => {
+  const rows = await db.select().from(projectTags);
+  res.json(rows);
+});
+
+router.post("/project-tags", async (req, res) => {
+  try {
+    const inserted = await db
+      .insert(projectTags)
+      .values({
+        projectId: Number(req.body.projectId),
+        tag: req.body.tag,
+      })
+      .returning();
+    res.status(201).json(inserted[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la création du tag" });
+  }
+});
+
+router.patch("/project-tags/:id", async (req, res) => {
+  try {
+    const updated = await db
+      .update(projectTags)
+      .set({ tag: req.body.tag })
+      .where(eq(projectTags.id, Number(req.params.id)))
+      .returning();
+    res.json(updated[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la mise à jour du tag" });
+  }
+});
+
+router.delete("/project-tags/:id", async (req, res) => {
+  try {
+    await db
+      .delete(projectTags)
+      .where(eq(projectTags.id, Number(req.params.id)));
+    res.status(204).end();
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la suppression du tag" });
+  }
+});
+
+// ── Project tech stack ──────────────────────────────────
+router.get("/project-tech-stack", async (req, res) => {
+  const rows = await db.select().from(projectTechStack);
+  res.json(rows);
+});
+
+router.post("/project-tech-stack", async (req, res) => {
+  try {
+    const inserted = await db
+      .insert(projectTechStack)
+      .values({
+        projectId: Number(req.body.projectId),
+        label: req.body.label,
+        type: req.body.type,
+      })
+      .returning();
+    res.status(201).json(inserted[0]);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la création de la technologie" });
+  }
+});
+
+router.patch("/project-tech-stack/:id", async (req, res) => {
+  try {
+    const updated = await db
+      .update(projectTechStack)
+      .set({ label: req.body.label, type: req.body.type })
+      .where(eq(projectTechStack.id, Number(req.params.id)))
+      .returning();
+    res.json(updated[0]);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la mise à jour de la technologie" });
+  }
+});
+
+router.delete("/project-tech-stack/:id", async (req, res) => {
+  try {
+    await db
+      .delete(projectTechStack)
+      .where(eq(projectTechStack.id, Number(req.params.id)));
+    res.status(204).end();
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la suppression de la technologie" });
   }
 });
 
