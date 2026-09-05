@@ -41,6 +41,10 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Resume Back API is running" });
 });
 app.use("/images", express.static(path.join(process.cwd(), "public/images")));
+app.use(
+  "/documents",
+  express.static(path.join(process.cwd(), "public/documents")),
+);
 app.use("/svg", express.static(path.join(process.cwd(), "public/svg")));
 
 // ── Routes API ───────────────────────────────────────────────

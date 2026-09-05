@@ -17,7 +17,7 @@ export const updateProfil = async (req, res) => {
     const updatedProfil = await db
       .update(profile)
       .set({ name, title, description, email, phone, address })
-      .where(profile.id.eq(1)) // Assuming there's only one profile with id=1
+      .where(profile.id.eq(1))
       .returning();
 
     if (updatedProfil.length === 0) {
