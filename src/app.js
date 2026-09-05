@@ -43,8 +43,13 @@ app.get("/health", (req, res) => {
 app.use("/images", express.static(path.join(process.cwd(), "public/images")));
 app.use(
   "/documents",
-  express.static(path.join(process.cwd(), "public/documents")),
+  express.static(path.join(process.cwd(), "public/documents"), {
+    setHeaders: (res, filePath) => {
+      res.setHeader("Content-Disposition", "attachment");
+    },
+  }),
 );
+
 app.use("/svg", express.static(path.join(process.cwd(), "public/svg")));
 
 // ── Routes API ───────────────────────────────────────────────
