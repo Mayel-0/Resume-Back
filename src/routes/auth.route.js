@@ -1,8 +1,17 @@
 import { Router } from "express";
 import { login, logout } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
+import rateLimit from "express-rate-limit";
 
 const router = Router();
+
+const loginRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Trop de tentatives. Réessayez dans 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 router.post("/login", loginRateLimit, login);
 router.post("/logout", logout);
