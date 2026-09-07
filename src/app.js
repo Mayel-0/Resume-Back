@@ -14,6 +14,7 @@ import skillItemsRoutes from "./routes/skillItems.route.js";
 import projectTagsRoutes from "./routes/projectTags.route.js";
 import projectTechStackRoutes from "./routes/projectTechStack.route.js";
 import authRoutes from "./routes/auth.route.js";
+import briefsRoutes from "./routes/brief.route.js";
 
 import adminRoutes from "./routes/admin.route.js";
 
@@ -74,6 +75,7 @@ app.use("/api", skillCategoriesRoutes);
 app.use("/api", skillItemsRoutes);
 app.use("/api", projectTagsRoutes);
 app.use("/api", projectTechStackRoutes);
+app.use("/api", briefsRoutes);
 
 app.use("/api/admin", adminRoutes);
 

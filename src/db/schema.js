@@ -118,3 +118,10 @@ export const admins = pgTable("admins", {
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const briefs = pgTable("briefs", {
+  id: serial("id").primaryKey(),
+  order: integer("order").notNull().default(0),
+  title: text("title").notNull(), // "FORMATION"
+  subtitle: text("subtitle").notNull(), // "Ynov Campus Bordeaux"
+});
