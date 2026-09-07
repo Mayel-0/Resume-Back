@@ -23,6 +23,7 @@ import {
 } from "./middleware/error.middleware.js";
 
 const app = express();
+app.set("trust proxy", 1);
 
 // ── Middlewares globaux ──────────────────────────────────────
 app.use(
@@ -31,6 +32,7 @@ app.use(
       "http://localhost:5173",
       "http://localhost:5174",
       "https://mael-llado.com",
+      "https://www.mael-llado.com",
       "https://admin.mael-llado.com",
     ],
     credentials: true,
@@ -39,7 +41,6 @@ app.use(
 
 app.use(cookieParser());
 app.use(express.json());
-app.set("trust proxy", 1);
 
 // ── Routes statiques ────────────────────────────────────────
 app.get("/health", (req, res) => {
