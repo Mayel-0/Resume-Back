@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllBriefs } from "../controllers/brief.controller";
+import { getAllBriefs } from "../controllers/brief.controller.js";
 
 const router = Router();
 
