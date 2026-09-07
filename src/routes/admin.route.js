@@ -11,6 +11,7 @@ import {
   skillCategories,
   projectTags,
   projectTechStack,
+  briefs,
 } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 
@@ -256,6 +257,49 @@ router.delete("/timeline/:id", async (req, res) => {
     res.status(204).end();
   } catch (error) {
     res.status(500).json({ error: "Erreur lors de la suppression" });
+  }
+});
+
+// ── Briefs ───────────────────────────────────────────────
+router.get("/briefs", async (req, res) => {
+  const rows = await db.select().from(briefs).orderBy(briefs.order);
+  res.json(rows);
+});
+
+router.patch("/briefs/:id", async (req, res) => {
+  try {
+    const updated = await db
+      .update(briefs)
+      .set(req.body)
+      .where(eq(briefs.id, Number(req.params.id)))
+      .returning();
+    res.json(updated[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la mise à jour du brief" });
+  }
+});
+
+router.post("/briefs", async (req, res) => {
+  try {
+    const inserted = await db
+      .insert(briefs)
+      .values({
+        ...req.body,
+        order: Number(req.body.order) || 0,
+      })
+      .returning();
+    res.status(201).json(inserted[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la création du brief" });
+  }
+});
+
+router.delete("/briefs/:id", async (req, res) => {
+  try {
+    await db.delete(briefs).where(eq(briefs.id, Number(req.params.id)));
+    res.status(204).end();
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la suppression du brief" });
   }
 });
 
