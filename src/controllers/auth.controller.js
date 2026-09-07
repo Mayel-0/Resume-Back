@@ -33,6 +33,7 @@ export const login = async (req, res) => {
       secure: true,
       sameSite: "lax",
       maxAge: 60 * 60 * 1000,
+      domain: ".mael-llado.com",
     });
 
     res.status(200).json({ message: "Connexion réussie !" });
@@ -46,6 +47,7 @@ export const logout = (req, res) => {
     httpOnly: true,
     secure: true,
     sameSite: "lax",
+    domain: ".mael-llado.com",
   });
   res.status(200).json({ message: "Déconnecté" });
 };
