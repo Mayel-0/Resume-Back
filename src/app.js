@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import path from "path";
 
 import apiRoutes from "./routes/index.js";
@@ -23,6 +24,13 @@ import {
 
 const app = express();
 
+app.use(
+  cors({
+    origin: "https://admin.mael-llado.com",
+    credentials: true,
+  }),
+);
+
 // ── Middlewares globaux ──────────────────────────────────────
 app.use(
   cors({
@@ -34,6 +42,8 @@ app.use(
     ],
   }),
 );
+
+app.use(cookieParser());
 app.use(express.json());
 
 // ── Routes statiques ────────────────────────────────────────

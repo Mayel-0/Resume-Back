@@ -12,6 +12,7 @@ export const login = async (req, res) => {
       .from(admins)
       .where(eq(admins.email, email));
     const admin = adminList[0];
+
     if (!admin) {
       return res.status(401).json({ error: "Email ou mot de passe incorrect" });
     }
@@ -20,13 +21,31 @@ export const login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ error: "Email ou mot de passe incorrect" });
     }
+
     const token = jwt.sign(
       { id: admin.id, email: admin.email },
       process.env.JWT_SECRET,
       { expiresIn: "1h" },
     );
-    res.status(200).json({ token, message: "Connexion réussie !" });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 60 * 60 * 1000,
+    });
+
+    res.status(200).json({ message: "Connexion réussie !" });
   } catch (error) {
     res.status(500).json({ error: "Erreur lors de la connexion" });
   }
+};
+
+export const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+  });
+  res.status(200).json({ message: "Déconnecté" });
 };

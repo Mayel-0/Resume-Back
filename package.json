@@ -24,6 +24,7 @@
   "homepage": "https://github.com/Mayel-0/Resume-Back#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
