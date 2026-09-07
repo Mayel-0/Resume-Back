@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
+  console.log("COOKIES REÇUS:", req.cookies); // ← log temporaire
+  console.log("HEADERS:", req.headers.cookie); // ← log temporaire
   const token = req.cookies?.token;
 
   if (!token) {
