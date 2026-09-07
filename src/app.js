@@ -24,13 +24,6 @@ import {
 
 const app = express();
 
-app.use(
-  cors({
-    origin: "https://admin.mael-llado.com",
-    credentials: true,
-  }),
-);
-
 // ── Middlewares globaux ──────────────────────────────────────
 app.use(
   cors({
@@ -40,6 +33,7 @@ app.use(
       "https://mael-llado.com",
       "https://admin.mael-llado.com",
     ],
+    credentials: true,
   }),
 );
 
