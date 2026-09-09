@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
-import "dotenv/config";
 
 import apiRoutes from "./routes/index.js";
 import projectRoutes from "./routes/projects.route.js";
@@ -83,8 +82,5 @@ app.use("/api/admin", adminRoutes);
 // ── Gestion d'erreurs ────────────────────────────────────────
 app.use(notFoundHandler);
 app.use(errorHandler);
-
-console.log("SMTP USER:", process.env.SMTP_USER ? "Chargé" : "Manquant");
-console.log("SMTP PASS:", process.env.SMTP_PASS ? "Chargé" : "Manquant");
 
 export default app;
