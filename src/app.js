@@ -83,4 +83,7 @@ app.use("/api/admin", adminRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
+console.log("SMTP USER:", process.env.SMTP_USER ? "Chargé" : "Manquant");
+console.log("SMTP PASS:", process.env.SMTP_PASS ? "Chargé" : "Manquant");
+
 export default app;
