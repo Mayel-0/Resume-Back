@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, logout } from "../controllers/auth.controller.js";
+import { login, logout, verifyOtp } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import rateLimit from "express-rate-limit";
 
@@ -14,6 +14,7 @@ const loginRateLimit = rateLimit({
 });
 
 router.post("/login", loginRateLimit, login);
+router.post("/verify-otp", loginRateLimit, verifyOtp);
 router.post("/logout", logout);
 
 router.get("/me", verifyToken, (req, res) => {

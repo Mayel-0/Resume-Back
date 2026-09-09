@@ -125,3 +125,11 @@ export const briefs = pgTable("briefs", {
   title: text("title").notNull(), // "FORMATION"
   subtitle: text("subtitle").notNull(), // "Ynov Campus Bordeaux"
 });
+
+export const otpCodes = pgTable("otp_codes", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  code: text("code").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").notNull().default(false),
+});
