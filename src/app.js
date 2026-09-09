@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
+import "dotenv/config";
 
 import apiRoutes from "./routes/index.js";
 import projectRoutes from "./routes/projects.route.js";
