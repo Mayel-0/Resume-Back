@@ -17,58 +17,55 @@ Ce dépôt est la **partie backend** d'un projet découpé en trois repos distin
 Client
   │
   ▼
-Cloudflare  ◄─── CDN, DDoS protection, SSL, masquage IP
+Cloudflare  ◄─── CDN, protection DDoS, SSL, masquage IP
   │
   ▼
 Oracle Cloud (Ubuntu)
   │
-  Nginx ─── Reverse Proxy
-  │         ├── mael-llado.com        → Frontend (dist Vite statique)
-  │         ├── mael-llado.com/api    → Backend Node.js  ◄── ce repo
-  │         └── admin.mael-llado.com  → Panel Admin
+  Nginx ─── Reverse proxy vers les conteneurs Docker
+  │         ├── mael-llado.com        → conteneur front  (build Vite servi par Nginx)
+  │         ├── mael-llado.com/api    → conteneur back   (Node.js)  ◄── ce repo
+  │         └── admin.mael-llado.com  → conteneur admin  (build Vite servi par Nginx)
   │
-  └── PostgreSQL  ◄─── Toutes les données (textes, projets, images, documents)
+  └── conteneur db ─── PostgreSQL 17, données dans un volume Docker
 ```
 
 > Le client ne communique jamais directement avec le serveur Oracle.
-> Cloudflare intercepte chaque requête et la relaie, ce qui masque l'IP réelle du serveur
-> (un `ping mael-llado.com` renvoie une IP Cloudflare, pas l'IP Oracle).
+> Cloudflare intercepte chaque requête et la relaie, ce qui masque l'IP réelle du serveur.
+> Les conteneurs n'écoutent que sur `127.0.0.1` : seul Nginx peut les joindre.
 
 ---
 
-## Backend — Resume-Back
+## Présentation
 
-### Présentation
-
-API REST construite avec **Node.js** et **Express 5**. Elle expose les données du portfolio stockées en base **PostgreSQL** via **Drizzle ORM**, et sécurise les routes d'administration avec une authentification **JWT**.
+API REST écrite en **TypeScript** (mode `strict`) avec **Node.js** et **Express 5**. Elle expose les données du portfolio stockées en base **PostgreSQL** via **Drizzle ORM**, valide tout ce qu'elle reçoit avec **Zod**, et protège les routes d'administration par une connexion en deux étapes.
 
 Elle sert deux types de consommateurs :
 
 - Le **frontend public** (`mael-llado.com`) — lecture seule, toutes les données du portfolio
-- Le **panneau admin** (`admin.mael-llado.com`) — lecture/écriture, routes protégées par JWT
+- Le **panneau admin** (`admin.mael-llado.com`) — lecture/écriture, routes protégées
+
+Elle sert aussi les fichiers statiques du site : images des projets, icônes et CV (`/images`, `/svg`, `/documents`).
 
 ---
 
 ## Stack technique
 
-| Catégorie               | Technologie        | Version                  |
-| ----------------------- | ------------------ | ------------------------ |
-| Runtime                 | Node.js            | ESM (`"type": "module"`) |
-| Framework               | Express            | 5                        |
-| ORM                     | Drizzle ORM        | 0.45                     |
-| Base de données         | PostgreSQL         | via `pg` 8.23            |
-| Authentification        | JSON Web Token     | 9                        |
-| Hash de mots de passe   | bcryptjs           | 3                        |
-| Variables d'env         | dotenv             | 17                       |
-| CORS                    | cors               | 2.8                      |
-| Rate limiting           | express-rate-limit | 7                        |
-| Cookies                 | cookie-parser      | 1.4                      |
-| Dev server              | Nodemon            | 3                        |
-| Migration / Push schema | Drizzle Kit        | 0.31                     |
-| TypeScript (tooling)    | TypeScript + tsx   | 7 / 4.23                 |
-
-> Le projet tourne en **ESM natif** (`"type": "module"` dans `package.json`).
-> Le schéma Drizzle est écrit en **TypeScript** (`.ts`), le reste de l'application en **JavaScript**.
+| Catégorie             | Technologie          | Version |
+| --------------------- | -------------------- | ------- |
+| Langage               | TypeScript (strict)  | 7       |
+| Runtime               | Node.js (ESM)        | 24      |
+| Framework             | Express              | 5       |
+| ORM                   | Drizzle ORM          | 0.45    |
+| Validation            | Zod + drizzle-zod    | 4       |
+| Base de données       | PostgreSQL (`pg`)    | 17      |
+| Authentification      | JSON Web Token       | 9       |
+| Hash de mots de passe | bcryptjs             | 3       |
+| E-mail (code OTP)     | Nodemailer           | 10      |
+| Rate limiting         | express-rate-limit   | 8       |
+| Dev server            | tsx (`tsx watch`)    | 4       |
+| Schéma → base         | Drizzle Kit          | 0.31    |
+| Conteneurisation      | Docker (multi-stage) | —       |
 
 ---
 
@@ -76,240 +73,247 @@ Elle sert deux types de consommateurs :
 
 ```
 Resume-Back/
-├── public/                  # Assets servis statiquement (images, PDF CV…)
+├── public/                  # Fichiers servis par l'API (images, SVG, CV en PDF)
 ├── src/
+│   ├── server.ts            # Point d'entrée — démarre le serveur HTTP
+│   ├── app.ts               # Application Express : middlewares et montage des routes
+│   ├── env.ts               # Variables d'environnement validées au démarrage
 │   ├── db/
-│   │   ├── schema.ts        # Définition des tables Drizzle ORM (PostgreSQL)
-│   │   ├── seed.js          # Script de peuplement initial (partiellement à jour)
-│   │   └── index.js         # Connexion à la base via pg + Drizzle
-│   ├── controllers/         # Logique métier — un fichier par ressource
-│   ├── routes/              # Définition des routes Express — un fichier par ressource
-│   └── middleware/          # Middlewares (auth JWT, gestion d'erreurs, etc.)
-├── drizzle/                 # Migrations générées par Drizzle Kit
-├── drizzle.config.ts        # Configuration Drizzle Kit (schéma, dialect, connexion)
-├── index.js                 # Point d'entrée — instanciation Express, montage des routes
-├── .env.example             # Template des variables d'environnement
-└── package.json
+│   │   ├── schema.ts        # Tables PostgreSQL (source de vérité des types)
+│   │   ├── index.ts         # Connexion à la base via pg + Drizzle
+│   │   └── seed.ts          # Données initiales pour un environnement local
+│   ├── models/              # Un fichier par entité : types + schémas de validation
+│   ├── controllers/         # Logique des routes publiques et de l'authentification
+│   ├── routes/              # Déclaration des routes — publiques, auth, admin
+│   ├── middleware/          # Vérification du JWT, gestion des erreurs
+│   ├── lib/
+│   │   ├── crud.ts          # Les 4 routes d'administration d'une ressource
+│   │   ├── http.ts          # Réponses d'erreur communes (400 / 500)
+│   │   └── mailer.ts        # Envoi du code de connexion
+│   └── types/               # Extension des types Express (req.admin)
+├── drizzle.config.ts        # Configuration Drizzle Kit
+├── tsconfig.json
+├── Dockerfile
+└── .env.example             # Modèle des variables d'environnement
 ```
 
-### Pattern MVC
+### Du schéma à la route : un seul type
 
-L'application suit une architecture **MVC** stricte, séparant clairement les responsabilités :
+Le schéma Drizzle est la source de vérité. Les types et la validation en sont déduits, rien n'est écrit deux fois :
 
 ```
-Requête HTTP
-  │
-  ▼
-Route (src/routes/)
-  │   Déclare le verbe HTTP et le chemin
-  │   Applique les middlewares (ex: vérification JWT)
-  ▼
-Controller (src/controllers/)
-  │   Contient la logique métier
-  │   Interroge la base via Drizzle ORM
-  │   Retourne la réponse JSON
-  ▼
-Middleware (src/middleware/)
-    Authentification JWT, gestion centralisée des erreurs
+src/db/schema.ts                    table "projects"
+        │
+        ▼
+src/models/project.ts               type Project        (typeof projects.$inferSelect)
+        │                           createProjectSchema (drizzle-zod)
+        │                           updateProjectSchema (tous les champs facultatifs)
+        ▼
+src/routes/admin.route.ts           crudRoutes({ createSchema, updateSchema, create, update… })
+```
+
+`crudRoutes` génère `GET`, `POST`, `PATCH` et `DELETE` pour une ressource. Les fonctions `create` et `update` reçoivent le type produit par les schémas Zod : si un schéma ne correspond plus aux colonnes de la table, le projet ne compile pas.
+
+### Validation des entrées
+
+Le corps de chaque requête d'écriture est validé avant d'atteindre la base :
+
+- un champ inconnu est **ignoré** (impossible d'écrire dans `id` ou `createdAt`) ;
+- un champ invalide renvoie une **erreur 400** lisible, en français :
+
+```json
+{ "error": "Données invalides — visibility : Option invalide : une valeur parmi \"Public\"|\"Privé\" attendue" }
 ```
 
 ---
 
-## Base de données
+## Routes
 
-La base **PostgreSQL** est gérée via **Drizzle ORM** — un ORM TypeScript-first léger qui génère du SQL typé sans abstraction lourde.
+### Publiques (lecture seule)
 
-### Workflow Drizzle
+| Route                         | Contenu                              |
+| ----------------------------- | ------------------------------------ |
+| `GET /api/profil`             | Présentation du hero                 |
+| `GET /api/socials`            | Liens de contact                     |
+| `GET /api/timeline`           | Étapes du parcours                   |
+| `GET /api/sections`           | Blocs de texte libres                |
+| `GET /api/briefs`             | Bloc « En bref »                     |
+| `GET /api/skill-categories`   | Catégories de compétences            |
+| `GET /api/skill-items`        | Compétences                          |
+| `GET /api/projects`           | Projets                              |
+| `GET /api/project-tags`       | Étiquettes des projets               |
+| `GET /api/project-tech-stack` | Langages et frameworks des projets   |
+| `GET /health`                 | État du serveur (utilisé par Docker) |
 
-```bash
-# Modifier le schéma dans src/db/schema.ts
-# puis pousser les changements directement en base (sans fichier de migration)
-npm run db:push
+### Administration (session requise)
 
-# Pour générer des fichiers de migration dans /drizzle/
-# drizzle-kit generate  (non scripté, utilisable manuellement)
-```
+Chaque ressource ci-dessus dispose de ses routes sous `/api/admin` :
 
-> `db:push` est utilisé en développement pour synchroniser rapidement le schéma.
-> Les fichiers de migration dans `/drizzle/` peuvent être utilisés pour un déploiement plus contrôlé.
-
-### Seed
-
-```bash
-npm run seed
-# → node --experimental-vm-modules src/db/seed.js
-```
-
-> ⚠️ Le fichier `seed.js` n'est pas entièrement à jour par rapport au schéma actuel.
-> À utiliser uniquement pour initialiser un environnement de développement local,
-> et à compléter manuellement si nécessaire.
+| Méthode  | Route                       | Action                       |
+| -------- | --------------------------- | ---------------------------- |
+| `GET`    | `/api/admin/:ressource`     | Lister                       |
+| `POST`   | `/api/admin/:ressource`     | Créer                        |
+| `PATCH`  | `/api/admin/:ressource/:id` | Modifier                     |
+| `DELETE` | `/api/admin/:ressource/:id` | Supprimer                    |
+| `PATCH`  | `/api/admin/profil`         | Modifier le profil (unique)  |
 
 ---
 
 ## Authentification
 
-Les routes d'administration sont protégées par **JSON Web Token (JWT)** stocké dans un **cookie `HttpOnly`** — inaccessible au JavaScript du navigateur, ce qui protège contre les attaques XSS.
-
-### Flux de connexion
+La connexion se fait en **deux étapes** : mot de passe, puis code à usage unique envoyé par e-mail. La session est un **JWT** stocké dans un **cookie `HttpOnly`**, inaccessible au JavaScript du navigateur.
 
 ```
-POST /api/auth/login  (email + password)
-  │
+POST /api/auth/login        (email + mot de passe)
+  │   vérification bcryptjs
+  │   génération d'un code à 6 chiffres, valable 10 minutes
   ▼
-Vérification bcryptjs + jwt.sign()
+E-mail envoyé à l'administrateur
   │
+POST /api/auth/verify-otp   (email + code)
+  │   le code est marqué comme utilisé
   ▼
 res.cookie("token", jwt, { httpOnly, secure, sameSite, domain })
-  │  → le navigateur stocke le cookie automatiquement
-  ▼
+  │
 Requêtes suivantes vers /api/admin/*
-  │  → le navigateur envoie le cookie automatiquement (credentials: "include")
+  │   le navigateur envoie le cookie (credentials: "include")
   ▼
-verifyToken middleware → jwt.verify() → req.admin = decoded
+verifyToken → signature et contenu du jeton vérifiés → req.admin
 ```
+
+| Méthode | Route                  | Description                                 |
+| ------- | ---------------------- | ------------------------------------------- |
+| `POST`  | `/api/auth/login`      | Vérifie les identifiants, envoie le code    |
+| `POST`  | `/api/auth/verify-otp` | Vérifie le code, pose le cookie de session  |
+| `POST`  | `/api/auth/logout`     | Efface le cookie                            |
+| `GET`   | `/api/auth/me`         | Indique si la session est valide            |
 
 ### Configuration du cookie
 
-```js
-res.cookie("token", token, {
+```ts
+const sessionCookie: CookieOptions = {
   httpOnly: true, // inaccessible au JS — protection XSS
   secure: true, // HTTPS uniquement
-  sameSite: "lax", // compatible cross-subdomain
+  sameSite: "lax",
   domain: ".mael-llado.com", // valide sur tous les sous-domaines
-  maxAge: 60 * 60 * 1000, // 1h — cohérent avec expiresIn JWT
-});
+};
 ```
 
-> `SameSite: "lax"` est nécessaire car le panel admin (`admin.mael-llado.com`) fait des requêtes vers l'API (`mael-llado.com/api`) — deux sous-domaines différents.
-> `domain: ".mael-llado.com"` (avec le point) rend le cookie valide sur tous les sous-domaines.
+> `domain: ".mael-llado.com"` rend le cookie valide à la fois pour l'API (`mael-llado.com`) et pour le panneau admin (`admin.mael-llado.com`). La session dure 1 heure.
 
-### Routes auth
+### Protection contre la force brute
 
-| Méthode | Route              | Description                       |
-| ------- | ------------------ | --------------------------------- |
-| `POST`  | `/api/auth/login`  | Connexion — pose le cookie JWT    |
-| `POST`  | `/api/auth/logout` | Déconnexion — efface le cookie    |
-| `GET`   | `/api/auth/me`     | Vérifie la validité de la session |
-
-### Protection rate limiting
-
-La route `/api/auth/login` est protégée par **`express-rate-limit`** :
-
-- Maximum **10 tentatives** par IP sur une fenêtre de **15 minutes**
-- Protège contre les attaques par force brute
+`/api/auth/login` et `/api/auth/verify-otp` sont limitées par **`express-rate-limit`** : 10 tentatives par IP sur 15 minutes.
 
 ---
 
 ## Variables d'environnement
 
-Créer un fichier `.env` à la racine avant de lancer le projet :
+Créer un fichier `.env` à la racine (modèle : `.env.example`) :
 
 ```dotenv
-PORT=5000
-DATABASE_URL=postgresql://user:password@localhost:5432/resume_db
-JWT_SECRET=votre_secret_jwt
+PORT=3000
+DATABASE_URL=postgres://user:password@localhost:5432/portfolio_db
+JWT_SECRET=une-longue-chaine-aleatoire
+SMTP_USER=
+SMTP_PASS=
 ```
 
-| Variable       | Description                                               |
-| -------------- | --------------------------------------------------------- |
-| `PORT`         | Port d'écoute du serveur Express (défaut : `5000`)        |
-| `DATABASE_URL` | URL de connexion PostgreSQL complète                      |
-| `JWT_SECRET`   | Clé secrète pour la signature/vérification des tokens JWT |
+| Variable       | Obligatoire | Description                                             |
+| -------------- | ----------- | ------------------------------------------------------- |
+| `DATABASE_URL` | oui         | URL de connexion PostgreSQL                             |
+| `JWT_SECRET`   | oui         | Clé de signature des jetons de session                  |
+| `PORT`         | non         | Port d'écoute (défaut : `3000`)                         |
+| `SMTP_USER`    | non         | Compte Gmail qui envoie le code de connexion            |
+| `SMTP_PASS`    | non         | Mot de passe d'application Gmail                        |
 
-> En production, le fichier `.env.production` est utilisé.
-> Ne jamais committer ces fichiers — ils sont dans le `.gitignore`.
-> Un `.env.example` est disponible à la racine comme référence.
+> Les variables sont validées au démarrage (`src/env.ts`) : s'il manque une variable obligatoire, le serveur s'arrête immédiatement en indiquant laquelle.
+> Sans `SMTP_*`, l'API démarre mais la connexion au panneau admin est impossible.
+> Les fichiers `.env` ne sont jamais commités.
 
 ---
 
 ## Installation & développement
 
 ```bash
-# Cloner le repo
 git clone https://github.com/Mayel-0/Resume-Back.git
 cd Resume-Back
-
-# Installer les dépendances
 npm install
 
 # Configurer l'environnement
 cp .env.example .env
-# puis renseigner DATABASE_URL, JWT_SECRET, PORT
 
-# Pousser le schéma en base
+# Créer les tables à partir du schéma
 npm run db:push
 
-# (Optionnel) Peupler la base avec des données initiales
+# (Optionnel) Remplir la base avec des données d'exemple
 npm run seed
 
-# Lancer le serveur de développement
+# Lancer le serveur avec rechargement automatique
 npm run dev
 ```
 
 ## Scripts disponibles
 
-| Commande          | Description                                               |
-| ----------------- | --------------------------------------------------------- |
-| `npm run dev`     | Serveur de développement avec Nodemon (rechargement auto) |
-| `npm run start`   | Lancer le serveur en production                           |
-| `npm run db:push` | Synchroniser le schéma Drizzle avec la base PostgreSQL    |
-| `npm run seed`    | Peupler la base avec des données initiales                |
+| Commande            | Description                                            |
+| ------------------- | ------------------------------------------------------ |
+| `npm run dev`       | Serveur de développement (`tsx watch`)                 |
+| `npm run build`     | Compilation TypeScript → `dist/`                       |
+| `npm run start`     | Lance la version compilée (`node dist/server.js`)      |
+| `npm run typecheck` | Vérification des types sans compiler                   |
+| `npm run db:push`   | Synchronise le schéma Drizzle avec la base             |
+| `npm run seed`      | Remplit la base avec des données d'exemple             |
 
 ---
 
 ## Déploiement
 
-Le serveur tourne en production sur **Oracle Cloud (Ubuntu)**, géré par **PM2** et exposé via **Nginx** en reverse proxy sur `mael-llado.com/api`.
+L'API tourne dans un **conteneur Docker**. Le `Dockerfile` procède en deux étapes : compilation TypeScript, puis image finale ne contenant que le code compilé et les dépendances de production, exécutée par un utilisateur non-root.
 
 ```bash
-# Build non nécessaire — Node.js natif ESM
-npm run start
-
-# Ou via PM2 pour la gestion du processus en production
-pm2 start index.js --name resume-back
-pm2 save
+docker build -t resume-back .
+docker run -d --env-file .env -p 127.0.0.1:3000:3000 resume-back
 ```
 
-Nginx route le trafic `/api` vers le port local du serveur Express, en transmettant les cookies :
+En production, un fichier `docker-compose.yml` lance ensemble la base PostgreSQL, l'API, le site et le panneau admin. L'API y reçoit son `DATABASE_URL` pointant vers le conteneur `db`, et ne démarre qu'une fois la base prête. Un `HEALTHCHECK` interroge `/health` toutes les 30 secondes.
+
+Le Nginx du serveur relaie `/api`, `/images`, `/svg` et `/documents` vers le conteneur :
 
 ```nginx
 location /api {
-    proxy_pass http://localhost:3000;
+    proxy_pass http://127.0.0.1:3000;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header Cookie $http_cookie;   # transmet les cookies au back
-    proxy_pass_header Set-Cookie;           # laisse passer Set-Cookie vers le client
 }
 ```
 
 ### Points de configuration importants
 
-**`trust proxy`** — obligatoire derrière Cloudflare/Nginx pour que `express-rate-limit` identifie correctement l'IP du client (sinon il voit l'IP de Cloudflare) :
+**`trust proxy`** — obligatoire derrière Cloudflare et Nginx pour que le rate limiting identifie l'IP réelle du client :
 
-```js
+```ts
 app.set("trust proxy", 1);
 ```
 
-**CORS** — une seule configuration unifiée avec `credentials: true`, obligatoire pour que le navigateur accepte d'envoyer les cookies sur les requêtes cross-origin :
+**CORS** — une seule configuration, avec `credentials: true` pour que le navigateur accepte d'envoyer le cookie de session depuis le panneau admin :
 
-```js
+```ts
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
       "http://localhost:5174",
       "https://mael-llado.com",
+      "https://www.mael-llado.com",
       "https://admin.mael-llado.com",
     ],
-    credentials: true, // obligatoire pour les cookies HttpOnly
+    credentials: true,
   }),
 );
 ```
-
-> ⚠️ Ne jamais déclarer deux `app.use(cors(...))` — le second écrase les headers du premier et `credentials: true` ne serait plus envoyé au navigateur.
 
 ---
 
