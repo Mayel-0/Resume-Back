@@ -1,0 +1,18 @@
+import type { RequestHandler } from "express";
+import { db } from "../db/index.js";
+import { sections } from "../db/schema.js";
+
+export const getAllSections: RequestHandler = async (_req, res) => {
+  try {
+    const allSections = await db
+      .select()
+      .from(sections)
+      .orderBy(sections.order);
+    res.status(200).json(allSections);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la récupération des sections" });
+  }
+};

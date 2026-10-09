@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.gitignore
+.DS_Store
+npm-debug.log*
+README.md
+Dockerfile
+.dockerignore
+
+# Secrets : jamais dans l'image
+.env
+.env.*
